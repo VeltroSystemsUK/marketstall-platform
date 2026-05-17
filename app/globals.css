@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+@theme {
+  /* Populated at runtime by next/font CSS variables injected on <html> */
+  --font-display: var(--font-playfair-display), Georgia, serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+
+  --color-forest-50: #f0f7ec;
+  --color-forest-100: #dcefd0;
+  --color-forest-200: #b9dfa2;
+  --color-forest-300: #8ec96e;
+  --color-forest-400: #67b343;
+  --color-forest-500: #4a9a2c;
+  --color-forest-600: #367a1f;
+  --color-forest-700: #2d6a4f;
+  --color-forest-800: #1e4d38;
+  --color-forest-900: #163527;
+  --color-forest-950: #0b1e16;
+
+  --color-earth-50: #faf6f1;
+  --color-earth-100: #f2e8d9;
+  --color-earth-200: #e4cfb3;
+  --color-earth-300: #d2af87;
+  --color-earth-400: #be8d5e;
+  --color-earth-500: #a8723e;
+  --color-earth-600: #8b5e3c;
+  --color-earth-700: #6f4a2f;
+  --color-earth-800: #563924;
+  --color-earth-900: #3d291a;
+  --color-earth-950: #24180d;
+
+  --color-harvest-50: #fefce8;
+  --color-harvest-100: #fdf6c3;
+  --color-harvest-200: #fbea8a;
+  --color-harvest-300: #f8d94b;
+  --color-harvest-400: #f4c420;
+  --color-harvest-500: #e8a838;
+  --color-harvest-600: #d4841a;
+  --color-harvest-700: #b06213;
+  --color-harvest-800: #8d4a14;
+  --color-harvest-900: #733c14;
+  --color-harvest-950: #411e07;
+
+  --color-cream: #fafaf5;
+  --color-cream-dark: #f2f0e8;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-cream);
+  color: #1a1a1a;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #c8c4b8;
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a09c90;
+}
+
+/* Custom utilities */
+.text-balance {
+  text-wrap: balance;
+}
+
+.gradient-forest {
+  background: linear-gradient(135deg, #2d6a4f 0%, #1e4d38 100%);
+}
+
+.gradient-harvest {
+  background: linear-gradient(135deg, #e8a838 0%, #d4841a 100%);
+}
+
+.gradient-hero {
+  background: linear-gradient(
+    160deg,
+    rgba(22, 53, 39, 0.92) 0%,
+    rgba(45, 106, 79, 0.75) 50%,
+    rgba(232, 168, 56, 0.4) 100%
+  );
+}
+
+/* Card hover effects */
+.card-hover {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 12px 40px -8px rgba(45, 106, 79, 0.18),
+    0 4px 12px -4px rgba(0, 0, 0, 0.08);
+}
+
+/* Focus rings */
+:focus-visible {
+  outline: 2px solid #2d6a4f;
+  outline-offset: 2px;
+}
+
+/* Section padding helper */
+.section-pad {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+}
+
+@media (max-width: 768px) {
+  .section-pad {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+}

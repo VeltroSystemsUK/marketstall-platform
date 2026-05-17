@@ -1,0 +1,137 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Helpers ────────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isUser(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function hasRole(role) {
+      return isSignedIn() && getUserData().role == role;
+    }
+
+    function isAdmin() {
+      return hasRole('admin');
+    }
+
+    function isProducer() {
+      return hasRole('producer');
+    }
+
+    function isConsumer() {
+      return hasRole('consumer');
+    }
+
+    // ─── Users ──────────────────────────────────────────────────
+    match /users/{userId} {
+      allow read: if isUser(userId) || isAdmin();
+      allow create: if isUser(userId)
+        && request.resource.data.role in ['consumer', 'producer']
+        && request.resource.data.keys().hasAll(['role', 'name', 'email', 'addresses', 'favourites', 'createdAt']);
+      allow update: if isUser(userId)
+        // Cannot change own role or email
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'email'])
+        || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ─── Producers ──────────────────────────────────────────────
+    match /producers/{producerId} {
+      // Anyone can read approved producers
+      allow read: if resource.data.status == 'approved' || isAdmin()
+        || (isProducer() && resource.data.userId == request.auth.uid);
+
+      // Producers can create their own profile
+      allow create: if isProducer()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending'; // must start as pending
+
+      // Producers can update their own profile but NOT change status or commissionRate
+      allow update: if (isProducer() && resource.data.userId == request.auth.uid
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'commissionRate', 'userId']))
+        || isAdmin();
+
+      allow delete: if isAdmin();
+    }
+
+    // ─── Products ───────────────────────────────────────────────
+    match /products/{productId} {
+      // Anyone can read available products from approved producers
+      allow read: if resource.data.available == true || isAdmin()
+        || (isProducer() && get(/databases/$(database)/documents/producers/$(resource.data.producerId)).data.userId == request.auth.uid);
+
+      // Producers can create products for their own storefront
+      allow create: if isProducer()
+        && get(/databases/$(database)/documents/producers/$(request.resource.data.producerId)).data.userId == request.auth.uid
+        && get(/databases/$(database)/documents/producers/$(request.resource.data.producerId)).data.status == 'approved';
+
+      allow update: if (isProducer()
+          && get(/databases/$(database)/documents/producers/$(resource.data.producerId)).data.userId == request.auth.uid)
+        || isAdmin();
+
+      allow delete: if isProducer()
+        && get(/databases/$(database)/documents/producers/$(resource.data.producerId)).data.userId == request.auth.uid
+        || isAdmin();
+    }
+
+    // ─── Orders ─────────────────────────────────────────────────
+    match /orders/{orderId} {
+      // Consumer can read their own orders; producers can read orders containing their products
+      allow read: if isAdmin()
+        || (isSignedIn() && resource.data.consumerId == request.auth.uid)
+        || (isProducer() && request.auth.uid in resource.data.producerIds);
+
+      // Only signed-in consumers can create orders
+      allow create: if isConsumer()
+        && request.resource.data.consumerId == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.total > 0;
+
+      // Status updates: producers can advance their portion; admins can do anything
+      allow update: if isAdmin()
+        || (isProducer() && request.auth.uid in resource.data.producerIds
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']));
+
+      allow delete: if isAdmin();
+    }
+
+    // ─── Reviews ────────────────────────────────────────────────
+    match /reviews/{reviewId} {
+      allow read: if true; // Public
+      allow create: if isConsumer()
+        && request.resource.data.consumerId == request.auth.uid
+        // Must have a delivered order with this producer
+        && exists(/databases/$(database)/documents/orders/$(request.resource.data.orderId))
+        && get(/databases/$(database)/documents/orders/$(request.resource.data.orderId)).data.status == 'delivered'
+        && get(/databases/$(database)/documents/orders/$(request.resource.data.orderId)).data.consumerId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // ─── Subscriptions ──────────────────────────────────────────
+    match /subscriptions/{subscriptionId} {
+      allow read: if isAdmin()
+        || (isSignedIn() && resource.data.consumerId == request.auth.uid);
+      allow create: if isConsumer()
+        && request.resource.data.consumerId == request.auth.uid;
+      allow update: if (isConsumer() && resource.data.consumerId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'items', 'nextDelivery']))
+        || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ─── Default deny ────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
