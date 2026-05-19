@@ -406,7 +406,7 @@ function SearchInterface({
                   Stable Baseline
                 </p>
                 <p className="text-[9px] text-zinc-500">
-                  Switch to Flash Latest
+                  Switch to Flash Stable
                 </p>
               </button>
               <button

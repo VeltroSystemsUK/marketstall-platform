@@ -81,7 +81,7 @@ app.post("/api/analyze-leads", async (req, res) => {
       attempt = 1,
     ): Promise<any> => {
       try {
-        let timer: ReturnType<typeof setTimeout>;
+        let timer: ReturnType<typeof setTimeout> | undefined;
         const timeoutPromise = new Promise<never>((_, reject) => {
           timer = setTimeout(() => reject(new Error("GEMINI_TIMEOUT")), 60_000);
         });
@@ -147,7 +147,7 @@ app.post("/api/analyze-leads", async (req, res) => {
             timeoutPromise,
           ]);
         } finally {
-          clearTimeout(timer!);
+          clearTimeout(timer);
         }
       } catch (err: any) {
         const isUnavailable =
