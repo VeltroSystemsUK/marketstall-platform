@@ -81,69 +81,74 @@ app.post("/api/analyze-leads", async (req, res) => {
       attempt = 1,
     ): Promise<any> => {
       try {
-        const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("GEMINI_TIMEOUT")), 60_000),
-        );
-        return await Promise.race([
-          ai.models.generateContent({
-            model: selectedModel,
-            contents: JSON.stringify({ places: placesInput }),
-            config: {
-              thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
-              responseMimeType: "application/json",
-              responseSchema: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    lead_id: { type: Type.STRING },
-                    business_name: { type: Type.STRING },
-                    lead_score: { type: Type.NUMBER },
-                    current_digital_status: { type: Type.STRING },
-                    contact_details: {
-                      type: Type.OBJECT,
-                      properties: {
-                        address: { type: Type.STRING },
-                        phone: { type: Type.STRING },
-                        email: { type: Type.STRING },
-                      },
-                      required: ["address"],
-                    },
-                    pitch_hook_angle: { type: Type.STRING },
-                    website_url: { type: Type.STRING },
-                    ai_demo_generation_parameters: {
-                      type: Type.OBJECT,
-                      properties: {
-                        framework_type: { type: Type.STRING },
-                        suggested_primary_keyword: { type: Type.STRING },
-                        recommended_placeholders: {
-                          type: Type.ARRAY,
-                          items: { type: Type.STRING },
+        let timer: ReturnType<typeof setTimeout>;
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          timer = setTimeout(() => reject(new Error("GEMINI_TIMEOUT")), 60_000);
+        });
+        try {
+          return await Promise.race([
+            ai.models.generateContent({
+              model: selectedModel,
+              contents: JSON.stringify({ places: placesInput }),
+              config: {
+                thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+                responseMimeType: "application/json",
+                responseSchema: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      lead_id: { type: Type.STRING },
+                      business_name: { type: Type.STRING },
+                      lead_score: { type: Type.NUMBER },
+                      current_digital_status: { type: Type.STRING },
+                      contact_details: {
+                        type: Type.OBJECT,
+                        properties: {
+                          address: { type: Type.STRING },
+                          phone: { type: Type.STRING },
+                          email: { type: Type.STRING },
                         },
+                        required: ["address"],
                       },
-                      required: [
-                        "framework_type",
-                        "suggested_primary_keyword",
-                        "recommended_placeholders",
-                      ],
+                      pitch_hook_angle: { type: Type.STRING },
+                      website_url: { type: Type.STRING },
+                      ai_demo_generation_parameters: {
+                        type: Type.OBJECT,
+                        properties: {
+                          framework_type: { type: Type.STRING },
+                          suggested_primary_keyword: { type: Type.STRING },
+                          recommended_placeholders: {
+                            type: Type.ARRAY,
+                            items: { type: Type.STRING },
+                          },
+                        },
+                        required: [
+                          "framework_type",
+                          "suggested_primary_keyword",
+                          "recommended_placeholders",
+                        ],
+                      },
                     },
+                    required: [
+                      "lead_id",
+                      "business_name",
+                      "lead_score",
+                      "current_digital_status",
+                      "contact_details",
+                      "pitch_hook_angle",
+                      "ai_demo_generation_parameters",
+                    ],
                   },
-                  required: [
-                    "lead_id",
-                    "business_name",
-                    "lead_score",
-                    "current_digital_status",
-                    "contact_details",
-                    "pitch_hook_angle",
-                    "ai_demo_generation_parameters",
-                  ],
                 },
+                systemInstruction: SYSTEM_PROMPT,
               },
-              systemInstruction: SYSTEM_PROMPT,
-            },
-          }),
-          timeoutPromise,
-        ]);
+            }),
+            timeoutPromise,
+          ]);
+        } finally {
+          clearTimeout(timer!);
+        }
       } catch (err: any) {
         const isUnavailable =
           err.message?.includes("503") ||
