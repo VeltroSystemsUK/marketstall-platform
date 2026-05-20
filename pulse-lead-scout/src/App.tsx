@@ -1013,6 +1013,12 @@ function SavedLeadCard({
   lead: SavedLead;
   onDelete: (id: string) => void;
 }) {
+  const contactCount =
+    useLiveQuery(
+      () => db.contacts.where("leadId").equals(lead.lead_id).count(),
+      [lead.lead_id],
+    ) ?? 0;
+
   const dotColor =
     (
       {
@@ -1032,6 +1038,11 @@ function SavedLeadCard({
             <span className="text-emerald-400 font-mono text-[11px]">
               {lead.lead_score}
             </span>
+            {contactCount > 0 && (
+              <span className="text-[9px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded px-1.5 py-0.5 font-mono">
+                {contactCount}c
+              </span>
+            )}
           </div>
           <h3 className="text-sm font-bold text-white truncate">
             {lead.business_name}
@@ -1083,37 +1094,178 @@ function SavedLeadsView() {
   const leads =
     useLiveQuery(() => db.leads.orderBy("savedAt").reverse().toArray()) ?? [];
 
+  const [bulkProgress, setBulkProgress] = useState<{
+    running: boolean;
+    done: number;
+    total: number;
+  } | null>(null);
+  const cancelRef = useRef(false);
+
   const handleDelete = async (id: string) => {
     await db.leads.delete(id);
   };
 
-  if (leads.length === 0) {
-    return (
-      <div className="flex-1 glass rounded-2xl flex items-center justify-center p-8 text-center">
-        <div>
-          <Database size={28} className="mx-auto mb-3 opacity-10" />
-          <p className="text-xs text-zinc-500 uppercase tracking-widest">
-            No saved leads yet
-          </p>
-          <p className="text-[10px] text-zinc-600 mt-1">
-            Hit "Save Lead" on any result to store it here
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const runBulkEnrichment = async () => {
+    const withUrl = leads.filter((l) => l.website_url);
+    const pending: typeof withUrl = [];
+
+    for (const lead of withUrl) {
+      try {
+        const u = lead.website_url!.startsWith("http")
+          ? lead.website_url!
+          : `https://${lead.website_url}`;
+        const domain = new URL(u).hostname.replace(/^www\./, "");
+        const cached = await db.enrichments.get(domain);
+        if (!cached || cached.status === "failed") {
+          pending.push(lead);
+        }
+      } catch {
+        // skip malformed URLs
+      }
+    }
+
+    if (pending.length === 0) return;
+
+    cancelRef.current = false;
+    setBulkProgress({ running: true, done: 0, total: pending.length });
+
+    for (let i = 0; i < pending.length; i++) {
+      if (cancelRef.current) break;
+
+      const lead = pending[i];
+      try {
+        const u = lead.website_url!.startsWith("http")
+          ? lead.website_url!
+          : `https://${lead.website_url}`;
+        const domain = new URL(u).hostname.replace(/^www\./, "");
+
+        const res = await fetch("/api/enrich-lead", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ domain, leadId: lead.lead_id }),
+        });
+        const data = await res.json();
+
+        if (data.status !== "failed") {
+          await db.enrichments.put({
+            domain,
+            leadId: lead.lead_id,
+            contacts: data.contacts || [],
+            enrichedAt: Date.now(),
+            status: data.status,
+          });
+
+          for (const c of data.contacts || []) {
+            if (!c.email) continue;
+            const exists = await db.contacts
+              .where("email")
+              .equals(c.email)
+              .and((r: { domain: string }) => r.domain === domain)
+              .first();
+            if (!exists) {
+              await db.contacts.add({
+                id: crypto.randomUUID(),
+                email: c.email,
+                name: c.name || undefined,
+                title: c.title || undefined,
+                leadId: lead.lead_id,
+                domain,
+                source: "enriched",
+                verificationStatus: "unverified",
+                createdAt: Date.now(),
+              });
+            }
+          }
+        }
+      } catch {
+        // Continue to next lead on error
+      }
+
+      setBulkProgress({ running: true, done: i + 1, total: pending.length });
+
+      if (i < pending.length - 1 && !cancelRef.current) {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+      }
+    }
+
+    setBulkProgress((prev) => (prev ? { ...prev, running: false } : null));
+  };
+
+  const cancelBulk = () => {
+    cancelRef.current = true;
+  };
+
+  const unenrichedCount = leads.filter((l) => l.website_url).length;
 
   return (
-    <div className="flex-1 glass rounded-2xl overflow-y-auto p-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-        {leads.map((lead) => (
-          <SavedLeadCard
-            key={lead.lead_id}
-            lead={lead}
-            onDelete={handleDelete}
-          />
-        ))}
-      </div>
+    <div className="flex-1 space-y-3">
+      {/* Bulk enrichment header */}
+      {unenrichedCount > 0 && (
+        <div className="glass rounded-xl px-4 py-3 flex items-center justify-between">
+          {bulkProgress ? (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-zinc-400 text-xs">
+                {bulkProgress.running && (
+                  <Loader2 size={12} className="animate-spin text-indigo-400" />
+                )}
+                <span>
+                  {bulkProgress.running
+                    ? `Enriching ${bulkProgress.done} / ${bulkProgress.total} leads…`
+                    : `Enriched ${bulkProgress.done} leads`}
+                </span>
+              </div>
+              {bulkProgress.running && (
+                <button
+                  onClick={cancelBulk}
+                  className="text-[9px] text-zinc-600 hover:text-zinc-400 uppercase tracking-widest"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+          ) : (
+            <p className="text-[10px] text-zinc-500 uppercase tracking-wider">
+              {unenrichedCount} saved leads with websites
+            </p>
+          )}
+          {!bulkProgress?.running && (
+            <button
+              onClick={runBulkEnrichment}
+              className="px-3 py-1.5 accent-gradient rounded-lg text-[9px] font-black uppercase tracking-widest text-white hover:opacity-90 transition-opacity flex items-center gap-1.5"
+            >
+              <Sparkles size={10} />
+              Enrich All Saved
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Lead cards */}
+      {leads.length === 0 ? (
+        <div className="flex-1 glass rounded-2xl flex items-center justify-center p-8 text-center">
+          <div>
+            <Database size={28} className="mx-auto mb-3 opacity-10" />
+            <p className="text-xs text-zinc-500 uppercase tracking-widest">
+              No saved leads yet
+            </p>
+            <p className="text-[10px] text-zinc-600 mt-1">
+              Hit "Save Lead" on any result to store it here
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="glass rounded-2xl overflow-y-auto p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            {leads.map((lead) => (
+              <SavedLeadCard
+                key={lead.lead_id}
+                lead={lead}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
