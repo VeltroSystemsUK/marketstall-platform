@@ -32,8 +32,18 @@ import {
   Settings as SettingsIcon,
   Activity,
   Cpu,
+  BookmarkCheck,
+  Bookmark,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db, type SavedLead } from "./db";
+import type { Lead } from "./types";
+import { useEnrichment } from "./hooks/useEnrichment";
+import { useVerification } from "./hooks/useVerification";
+import { ContactsPanel } from "./components/ContactsPanel";
+import { ComposeDrawer } from "./components/ComposeDrawer";
+import type { ContactRecord } from "./types";
 
 const API_KEY =
   process.env.GOOGLE_MAPS_PLATFORM_KEY ||
@@ -61,28 +71,6 @@ function openInCustomizer(lead: Lead) {
   );
   if (lead.website_url) params.set("websiteUrl", lead.website_url);
   window.open(`${BIZCUSTOMIZER_URL}?${params.toString()}`, "_blank");
-}
-
-interface Lead {
-  lead_id: string;
-  business_name: string;
-  website_url?: string;
-  contact_details: {
-    phone: string;
-    address: string;
-  };
-  current_digital_status:
-    | "NO_WEBSITE"
-    | "OUTDATED_UNSECURE"
-    | "OUTDATED_STATIC"
-    | "MODERN_RETAIN";
-  lead_score: number;
-  pitch_hook_angle: string;
-  ai_demo_generation_parameters: {
-    framework_type: string;
-    suggested_primary_keyword: string;
-    recommended_placeholders: string[];
-  };
 }
 
 function SettingsModal({
@@ -673,6 +661,43 @@ function MainView({
   lead: Lead | null;
   location?: google.maps.LatLngLiteral;
 }) {
+  const domain = lead?.website_url
+    ? (() => {
+        try {
+          const u = lead.website_url.startsWith("http")
+            ? lead.website_url
+            : `https://${lead.website_url}`;
+          return new URL(u).hostname.replace(/^www\./, "");
+        } catch {
+          return undefined;
+        }
+      })()
+    : undefined;
+
+  const { state: enrichmentState, retry } = useEnrichment(
+    domain,
+    lead?.lead_id ?? "",
+  );
+  useVerification(lead?.lead_id ?? "");
+
+  const [composeContact, setComposeContact] = useState<ContactRecord | null>(
+    null,
+  );
+
+  const saved = useLiveQuery(
+    () => (lead ? db.leads.get(lead.lead_id) : undefined),
+    [lead?.lead_id],
+  );
+
+  const handleSave = async () => {
+    if (!lead) return;
+    if (saved) {
+      await db.leads.delete(lead.lead_id);
+    } else {
+      await db.leads.add({ ...lead, savedAt: Date.now() });
+    }
+  };
+
   if (!lead) {
     return (
       <div className="flex-1 glass rounded-2xl flex items-center justify-center p-8 text-center">
@@ -689,147 +714,192 @@ function MainView({
   const hasUrl = Boolean(lead.website_url);
 
   return (
-    <div className="flex-1 glass rounded-2xl overflow-hidden flex flex-col min-w-0">
-      <div className="bg-white/5 border-b border-white/5 p-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
-          <div className="space-y-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="accent-gradient text-[10px] font-black uppercase px-2 py-0.5 rounded text-white">
-                Score: {lead.lead_score}
-              </span>
-              <span className="text-zinc-600 text-[10px] font-mono uppercase">
-                {lead.lead_id}
-              </span>
-            </div>
-            <h1 className="text-lg font-bold tracking-tight text-white truncate">
-              {lead.business_name}
-            </h1>
-            <p className="text-zinc-500 text-xs flex items-center gap-1.5">
-              <MapPin size={12} className="text-indigo-400 shrink-0" />
-              {lead.contact_details.address}
-            </p>
-          </div>
+    <>
+      <ComposeDrawer
+        isOpen={Boolean(composeContact)}
+        contact={composeContact}
+        leadId={lead.lead_id}
+        pitchHook={lead.pitch_hook_angle}
+        onClose={() => setComposeContact(null)}
+      />
 
-          <div className="shrink-0">
-            {hasUrl ? (
-              <button
-                onClick={() => openInCustomizer(lead)}
-                className="accent-gradient px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2 text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-500/30 hover:opacity-90 active:scale-95"
-              >
-                Generate Demo <Sparkles size={14} />
-              </button>
-            ) : (
-              <div className="flex items-center gap-1.5 text-[10px] text-zinc-600 uppercase tracking-wider border border-zinc-700 px-3 py-2 rounded-lg">
-                <ShieldAlert size={12} />
-                No URL — manual entry
+      <div className="flex-1 glass rounded-2xl overflow-hidden flex flex-col min-w-0">
+        <div className="bg-white/5 border-b border-white/5 p-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
+            <div className="space-y-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="accent-gradient text-[10px] font-black uppercase px-2 py-0.5 rounded text-white">
+                  Score: {lead.lead_score}
+                </span>
+                <span className="text-zinc-600 text-[10px] font-mono uppercase">
+                  {lead.lead_id}
+                </span>
               </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="p-4 overflow-y-auto space-y-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="space-y-4">
-            <section>
-              <h4 className="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.2em] mb-2">
-                Pitch Intel
-              </h4>
-              <div className="bg-white/5 border-l-2 border-indigo-500 p-3 rounded-r-xl">
-                <p className="text-zinc-300 text-sm leading-relaxed italic">
-                  "{lead.pitch_hook_angle}"
-                </p>
-              </div>
-            </section>
-
-            <section>
-              <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-2">
-                Digital Status
-              </h4>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="p-3 bg-white/5 border border-white/5 rounded-xl">
-                  <span className="text-[10px] text-zinc-500 font-bold uppercase block mb-1 tracking-wider">
-                    Status
-                  </span>
-                  <span className="font-semibold text-zinc-200 uppercase text-xs">
-                    {lead.current_digital_status.replace(/_/g, " ")}
-                  </span>
-                </div>
-                <div className="p-3 bg-white/5 border border-white/5 rounded-xl">
-                  <span className="text-[10px] text-zinc-500 font-bold uppercase block mb-1 tracking-wider">
-                    SEO Gap
-                  </span>
-                  <span className="font-semibold text-zinc-200 text-xs underline underline-offset-4 decoration-indigo-500/50">
-                    {
-                      lead.ai_demo_generation_parameters
-                        .suggested_primary_keyword
-                    }
-                  </span>
-                </div>
-              </div>
-            </section>
-          </div>
-
-          <div className="space-y-4">
-            <section>
-              <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-2">
-                AI Projection
-              </h4>
-              <div className="bg-white/5 p-3 border border-white/5 rounded-xl space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-                    Framework
-                  </span>
-                  <span className="mono text-[10px] text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded uppercase">
-                    {lead.ai_demo_generation_parameters.framework_type}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {lead.ai_demo_generation_parameters.recommended_placeholders.map(
-                    (p, i) => (
-                      <span
-                        key={i}
-                        className="text-[10px] bg-white/5 border border-white/5 px-2 py-0.5 rounded text-zinc-400"
-                      >
-                        {p}
-                      </span>
-                    ),
-                  )}
-                </div>
-              </div>
-            </section>
-
-            <section className="h-36 bg-white/5 rounded-xl border border-white/5 overflow-hidden relative">
-              {location ? (
-                <Map
-                  defaultCenter={location}
-                  defaultZoom={15}
-                  mapId="DEMO_MAP_ID"
-                  disableDefaultUI
-                  gestureHandling="none"
-                  internalUsageAttributionIds={[
-                    "gmp_mcp_codeassist_v1_aistudio",
-                  ]}
-                  style={{ width: "100%", height: "100%" }}
+              <h1 className="text-lg font-bold tracking-tight text-white truncate">
+                {lead.business_name}
+              </h1>
+              <p className="text-zinc-500 text-xs flex items-center gap-1.5">
+                <MapPin size={12} className="text-indigo-400 shrink-0" />
+                {lead.contact_details.address}
+              </p>
+              {lead.website_url && (
+                <a
+                  href={
+                    lead.website_url.startsWith("http")
+                      ? lead.website_url
+                      : `https://${lead.website_url}`
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-indigo-400 hover:text-indigo-300 text-[10px] flex items-center gap-1 transition-colors"
                 >
-                  <AdvancedMarker position={location}>
-                    <Pin
-                      background="#6366f1"
-                      glyphColor="#fff"
-                      borderColor="#6366f1"
-                    />
-                  </AdvancedMarker>
-                </Map>
+                  <Globe size={10} />
+                  {domain}
+                </a>
+              )}
+            </div>
+
+            <div className="shrink-0 flex items-center gap-2">
+              <button
+                onClick={handleSave}
+                className={`px-3 py-2 rounded-lg font-bold flex items-center gap-1.5 text-[10px] uppercase tracking-widest transition-all active:scale-95 border ${
+                  saved
+                    ? "border-emerald-500/40 text-emerald-400 bg-emerald-500/10"
+                    : "border-white/10 text-zinc-400 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                {saved ? <BookmarkCheck size={13} /> : <Bookmark size={13} />}
+                {saved ? "Saved" : "Save"}
+              </button>
+              {hasUrl ? (
+                <button
+                  onClick={() => openInCustomizer(lead)}
+                  className="accent-gradient px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2 text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-500/30 hover:opacity-90 active:scale-95"
+                >
+                  Generate Demo <Sparkles size={14} />
+                </button>
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center text-zinc-600 text-[10px] font-bold uppercase tracking-widest">
-                  Satellite Link Offline
+                <div className="flex items-center gap-1.5 text-[10px] text-zinc-600 uppercase tracking-wider border border-zinc-700 px-3 py-2 rounded-lg">
+                  <ShieldAlert size={12} />
+                  No URL — manual entry
                 </div>
               )}
-            </section>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4 overflow-y-auto space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Left column — Pitch Intel + Digital Status */}
+            <div className="space-y-4">
+              <section>
+                <h4 className="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.2em] mb-2">
+                  Pitch Intel
+                </h4>
+                <div className="bg-white/5 border-l-2 border-indigo-500 p-3 rounded-r-xl">
+                  <p className="text-zinc-300 text-sm leading-relaxed italic">
+                    "{lead.pitch_hook_angle}"
+                  </p>
+                </div>
+              </section>
+
+              <section>
+                <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-2">
+                  Digital Status
+                </h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="p-3 bg-white/5 border border-white/5 rounded-xl">
+                    <span className="text-[10px] text-zinc-500 font-bold uppercase block mb-1 tracking-wider">
+                      Status
+                    </span>
+                    <span className="font-semibold text-zinc-200 uppercase text-xs">
+                      {lead.current_digital_status.replace(/_/g, " ")}
+                    </span>
+                  </div>
+                  <div className="p-3 bg-white/5 border border-white/5 rounded-xl">
+                    <span className="text-[10px] text-zinc-500 font-bold uppercase block mb-1 tracking-wider">
+                      SEO Gap
+                    </span>
+                    <span className="font-semibold text-zinc-200 text-xs underline underline-offset-4 decoration-indigo-500/50">
+                      {
+                        lead.ai_demo_generation_parameters
+                          .suggested_primary_keyword
+                      }
+                    </span>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            {/* Right column — Contacts (top) + AI Projection + Map */}
+            <div className="space-y-4">
+              <ContactsPanel
+                enrichmentState={enrichmentState}
+                leadId={lead.lead_id}
+                onRetry={retry}
+                onEmailClick={setComposeContact}
+              />
+
+              <section>
+                <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] mb-2">
+                  AI Projection
+                </h4>
+                <div className="bg-white/5 p-3 border border-white/5 rounded-xl space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                      Framework
+                    </span>
+                    <span className="mono text-[10px] text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded uppercase">
+                      {lead.ai_demo_generation_parameters.framework_type}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {lead.ai_demo_generation_parameters.recommended_placeholders.map(
+                      (p, i) => (
+                        <span
+                          key={i}
+                          className="text-[10px] bg-white/5 border border-white/5 px-2 py-0.5 rounded text-zinc-400"
+                        >
+                          {p}
+                        </span>
+                      ),
+                    )}
+                  </div>
+                </div>
+              </section>
+
+              <section className="h-36 bg-white/5 rounded-xl border border-white/5 overflow-hidden relative">
+                {location ? (
+                  <Map
+                    defaultCenter={location}
+                    defaultZoom={15}
+                    mapId="DEMO_MAP_ID"
+                    disableDefaultUI
+                    gestureHandling="none"
+                    internalUsageAttributionIds={[
+                      "gmp_mcp_codeassist_v1_aistudio",
+                    ]}
+                    style={{ width: "100%", height: "100%" }}
+                  >
+                    <AdvancedMarker position={location}>
+                      <Pin
+                        background="#6366f1"
+                        glyphColor="#fff"
+                        borderColor="#6366f1"
+                      />
+                    </AdvancedMarker>
+                  </Map>
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-zinc-600 text-[10px] font-bold uppercase tracking-widest">
+                    Satellite Link Offline
+                  </div>
+                )}
+              </section>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -936,6 +1006,118 @@ function Splash() {
   );
 }
 
+function SavedLeadCard({
+  lead,
+  onDelete,
+}: {
+  lead: SavedLead;
+  onDelete: (id: string) => void;
+}) {
+  const dotColor =
+    (
+      {
+        NO_WEBSITE: "bg-rose-500",
+        OUTDATED_UNSECURE: "bg-amber-500",
+        OUTDATED_STATIC: "bg-amber-400",
+        MODERN_RETAIN: "bg-zinc-500",
+      } as Record<string, string>
+    )[lead.current_digital_status] ?? "bg-indigo-400";
+
+  return (
+    <div className="bg-white/5 border border-white/5 rounded-xl p-4 space-y-3 hover:border-white/10 transition-colors">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`} />
+            <span className="text-emerald-400 font-mono text-[11px]">
+              {lead.lead_score}
+            </span>
+          </div>
+          <h3 className="text-sm font-bold text-white truncate">
+            {lead.business_name}
+          </h3>
+          <p className="text-zinc-500 text-[10px] truncate mt-0.5">
+            {lead.contact_details.address}
+          </p>
+        </div>
+        <button
+          onClick={() => onDelete(lead.lead_id)}
+          className="p-1.5 hover:bg-rose-500/20 rounded-lg text-zinc-600 hover:text-rose-400 transition-colors shrink-0"
+          title="Remove saved lead"
+        >
+          <X size={13} />
+        </button>
+      </div>
+      <p className="text-zinc-400 text-xs italic leading-relaxed line-clamp-2">
+        "{lead.pitch_hook_angle}"
+      </p>
+      <div className="flex items-center justify-between gap-2 pt-1">
+        <span className="text-[9px] text-zinc-600 uppercase tracking-wider">
+          {new Date(lead.savedAt).toLocaleDateString("en-GB")}
+        </span>
+        <div className="flex gap-1.5">
+          {lead.website_url && (
+            <button
+              onClick={() => openInCustomizer(lead)}
+              className="px-2.5 py-1.5 accent-gradient rounded-lg text-[9px] font-black uppercase tracking-widest text-white hover:opacity-90 transition-opacity flex items-center gap-1"
+            >
+              Demo <Sparkles size={10} />
+            </button>
+          )}
+          {lead.contact_details.phone && (
+            <a
+              href={`tel:${lead.contact_details.phone}`}
+              className="px-2.5 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-1"
+            >
+              <Phone size={10} />
+              Call
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SavedLeadsView() {
+  const leads =
+    useLiveQuery(() => db.leads.orderBy("savedAt").reverse().toArray()) ?? [];
+
+  const handleDelete = async (id: string) => {
+    await db.leads.delete(id);
+  };
+
+  if (leads.length === 0) {
+    return (
+      <div className="flex-1 glass rounded-2xl flex items-center justify-center p-8 text-center">
+        <div>
+          <Database size={28} className="mx-auto mb-3 opacity-10" />
+          <p className="text-xs text-zinc-500 uppercase tracking-widest">
+            No saved leads yet
+          </p>
+          <p className="text-[10px] text-zinc-600 mt-1">
+            Hit "Save Lead" on any result to store it here
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 glass rounded-2xl overflow-y-auto p-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        {leads.map((lead) => (
+          <SavedLeadCard
+            key={lead.lead_id}
+            lead={lead}
+            onDelete={handleDelete}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [locations, setLocations] = useState<
@@ -946,6 +1128,8 @@ export default function App() {
   const [selectedModelId, setSelectedModelId] = useState(
     "gemini-3-flash-preview",
   );
+  const [view, setView] = useState<"scout" | "saved">("scout");
+  const savedCount = useLiveQuery(() => db.leads.count()) ?? 0;
 
   if (!hasValidKey) return <Splash />;
 
@@ -975,8 +1159,22 @@ export default function App() {
               </div>
             </div>
             <nav className="flex items-center gap-1 bg-white/5 p-0.5 rounded-lg border border-white/5">
-              <button className="px-3 py-1.5 bg-white/10 rounded-md text-[10px] font-bold text-white uppercase tracking-widest">
+              <button
+                onClick={() => setView("scout")}
+                className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest transition-colors ${view === "scout" ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-300"}`}
+              >
                 Pulse Scout
+              </button>
+              <button
+                onClick={() => setView("saved")}
+                className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center gap-1.5 ${view === "saved" ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-300"}`}
+              >
+                Saved
+                {savedCount > 0 && (
+                  <span className="text-[9px] bg-indigo-500 text-white rounded-full px-1.5 font-mono leading-4">
+                    {savedCount}
+                  </span>
+                )}
               </button>
               <button
                 onClick={() => setIsSettingsOpen(true)}
@@ -987,30 +1185,37 @@ export default function App() {
             </nav>
           </header>
 
-          <SearchInterface
-            selectedModelId={selectedModelId}
-            setSelectedModelId={setSelectedModelId}
-            onResults={(newLeads, newLocations) => {
-              const sorted = [...newLeads].sort((a, b) => {
-                const aUrl = a.website_url ? 1 : 0;
-                const bUrl = b.website_url ? 1 : 0;
-                if (bUrl !== aUrl) return bUrl - aUrl;
-                return b.lead_score - a.lead_score;
-              });
-              setLeads(sorted);
-              setLocations(newLocations);
-              if (sorted.length > 0) setSelectedLeadId(sorted[0].lead_id);
-            }}
-          />
-
-          <div className="flex flex-col lg:flex-row gap-3">
-            <Sidebar
-              leads={leads}
-              selectedLeadId={selectedLeadId}
-              onSelect={setSelectedLeadId}
-            />
-            <MainView lead={selectedLead} location={selectedLocation} />
-          </div>
+          {view === "scout" ? (
+            <>
+              <SearchInterface
+                selectedModelId={selectedModelId}
+                setSelectedModelId={setSelectedModelId}
+                onResults={(newLeads, newLocations) => {
+                  const sorted = [...newLeads].sort((a, b) => {
+                    const aUrl = a.website_url ? 1 : 0;
+                    const bUrl = b.website_url ? 1 : 0;
+                    if (bUrl !== aUrl) return bUrl - aUrl;
+                    return b.lead_score - a.lead_score;
+                  });
+                  setLeads(sorted);
+                  setLocations(newLocations);
+                  if (sorted.length > 0) setSelectedLeadId(sorted[0].lead_id);
+                }}
+              />
+              <div className="flex flex-col lg:flex-row gap-3">
+                <Sidebar
+                  leads={leads}
+                  selectedLeadId={selectedLeadId}
+                  onSelect={setSelectedLeadId}
+                />
+                <MainView lead={selectedLead} location={selectedLocation} />
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col lg:flex-row gap-3">
+              <SavedLeadsView />
+            </div>
+          )}
         </div>
       </div>
     </APIProvider>
