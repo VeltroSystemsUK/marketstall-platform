@@ -1,0 +1,280 @@
+<h2>System architecture — bizcustomizer</h2>
+<p class="subtitle">
+  High-level overview of what gets built and how the pieces connect
+</p>
+
+<div class="section">
+  <h3>New repos</h3>
+  <div
+    style="
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 0.75rem;
+    "
+  >
+    <div
+      style="
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1rem;
+      "
+    >
+      <span class="label">Customizer App</span>
+      <p style="margin: 0.5rem 0 0.25rem; font-weight: 600">bizcustomizer</p>
+      <p style="font-size: 0.8rem; color: var(--text-muted)">
+        New Next.js app. Standalone from marketstall-customizer. Same stack: App
+        Router, TypeScript, Tailwind, streaming API.
+      </p>
+    </div>
+    <div
+      style="
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1rem;
+      "
+    >
+      <span class="label">3 Template Repos</span>
+      <p style="margin: 0.5rem 0 0.25rem; font-weight: 600">
+        biztemplate-trades<br />biztemplate-wellness<br />biztemplate-hospitality
+      </p>
+      <p style="font-size: 0.8rem; color: var(--text-muted)">
+        Each is a standalone Next.js site, deployed to its own Vercel project.
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Pipeline (same flow as stalls)</h3>
+  <div
+    style="
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    "
+  >
+    <div
+      style="
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.6rem 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+      "
+    >
+      <span style="font-size: 1.1rem">①</span>
+      <span
+        ><strong>Scrape</strong> — Firecrawl fetches the client's existing site
+        (text + images)</span
+      >
+    </div>
+    <div
+      style="
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.6rem 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+      "
+    >
+      <span style="font-size: 1.1rem">②</span>
+      <span
+        ><strong>Generate</strong> — Claude produces sector-specific JSON
+        (brand, services/menu/team, colors, copy)</span
+      >
+    </div>
+    <div
+      style="
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.6rem 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+      "
+    >
+      <span style="font-size: 1.1rem">③</span>
+      <span
+        ><strong>Images</strong> — Gemini generates → Firecrawl scraped fallback
+        → Unsplash keyword fallback</span
+      >
+    </div>
+    <div
+      style="
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.6rem 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+      "
+    >
+      <span style="font-size: 1.1rem">④</span>
+      <span
+        ><strong>Review</strong> — Sales rep previews brand + images before
+        committing</span
+      >
+    </div>
+    <div
+      style="
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.6rem 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+      "
+    >
+      <span style="font-size: 1.1rem">⑤</span>
+      <span
+        ><strong>Deploy</strong> — Writes config files + images to GitHub →
+        Vercel auto-deploys → preview URL returned</span
+      >
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Template page structures</h3>
+  <div
+    style="
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    "
+  >
+    <div
+      style="
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1rem;
+      "
+    >
+      <span class="label" style="color: #f97316">TRADES</span>
+      <p
+        style="margin: 0.5rem 0 0.25rem; font-weight: 600; font-size: 0.875rem"
+      >
+        Single-page SPA
+      </p>
+      <ul
+        style="
+          font-size: 0.8rem;
+          color: var(--text-muted);
+          margin: 0;
+          padding-left: 1.1rem;
+          line-height: 1.8;
+        "
+      >
+        <li>Hero + CTA</li>
+        <li>Trust Bar</li>
+        <li>Services Grid</li>
+        <li>Before/After Gallery</li>
+        <li>Reviews</li>
+        <li>Contact/Footer</li>
+      </ul>
+    </div>
+    <div
+      style="
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1rem;
+      "
+    >
+      <span class="label" style="color: #8b5cf6">WELLNESS</span>
+      <p
+        style="margin: 0.5rem 0 0.25rem; font-weight: 600; font-size: 0.875rem"
+      >
+        Multi-page
+      </p>
+      <ul
+        style="
+          font-size: 0.8rem;
+          color: var(--text-muted);
+          margin: 0;
+          padding-left: 1.1rem;
+          line-height: 1.8;
+        "
+      >
+        <li>/ Hero + Vibe</li>
+        <li>/services Menu</li>
+        <li>/team Profiles</li>
+        <li>/book CTA</li>
+      </ul>
+    </div>
+    <div
+      style="
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1rem;
+      "
+    >
+      <span class="label" style="color: #10b981">HOSPITALITY</span>
+      <p
+        style="margin: 0.5rem 0 0.25rem; font-weight: 600; font-size: 0.875rem"
+      >
+        Multi-page
+      </p>
+      <ul
+        style="
+          font-size: 0.8rem;
+          color: var(--text-muted);
+          margin: 0;
+          padding-left: 1.1rem;
+          line-height: 1.8;
+        "
+      >
+        <li>/ Hero + Essentials</li>
+        <li>/menu Categories</li>
+        <li>/book Reservation</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Files committed on deploy (per sector)</h3>
+  <div
+    style="
+      font-size: 0.85rem;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      font-family: monospace;
+      line-height: 2;
+    "
+  >
+    site.config.ts &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+      style="color: var(--text-muted)"
+      >← brand, contact, sector data (services/menu/team)</span
+    ><br />
+    app/globals.css &nbsp;&nbsp;&nbsp;&nbsp;<span
+      style="color: var(--text-muted)"
+      >← derived color palette</span
+    ><br />
+    public/images/* &nbsp;&nbsp;&nbsp;&nbsp;<span
+      style="color: var(--text-muted)"
+      >← hero + section images</span
+    >
+  </div>
+</div>

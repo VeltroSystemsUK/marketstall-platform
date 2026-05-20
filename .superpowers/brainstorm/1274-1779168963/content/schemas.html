@@ -1,0 +1,243 @@
+<h2>Agent output schemas — per sector</h2>
+<p class="subtitle">
+  What Claude generates from scraped data. These map directly to
+  <code>site.config.ts</code> in each template.
+</p>
+
+<div class="section">
+  <span class="label" style="color: #f97316">TRADES</span>
+  <div
+    style="
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    "
+  >
+    <div
+      style="
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        padding: 0.875rem;
+        font-size: 0.8rem;
+        line-height: 1.9;
+        font-family: monospace;
+      "
+    >
+      brand {<br />
+      &nbsp;&nbsp;name, tagline<br />
+      &nbsp;&nbsp;phone, email<br />
+      &nbsp;&nbsp;address, hours<br />
+      &nbsp;&nbsp;logoUrl?<br />
+      &nbsp;&nbsp;primaryScale, accentScale<br />
+      }<br />
+      services [ 3–6 {<br />
+      &nbsp;&nbsp;name, description<br />
+      &nbsp;&nbsp;icon (lucide name)<br />
+      &nbsp;&nbsp;imageKeywords<br />
+      }]<br />
+      trustBadges [ { name } ]<br />
+      stats [ { value, label } ]<br />
+      reviews [ 3–5 {<br />
+      &nbsp;&nbsp;author, rating, text<br />
+      }]<br />
+      heroImageKeywords
+    </div>
+    <div
+      style="
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        line-height: 1.9;
+        padding-top: 0.25rem;
+      "
+    >
+      <strong style="color: var(--text)">Review screen shows:</strong><br />
+      Hero image + 3–6 service images<br /><br />
+      <strong style="color: var(--text)">Deployed images:</strong><br />
+      public/images/hero.jpg<br />
+      public/images/service-{n}.jpg<br /><br />
+      <strong style="color: var(--text)">Before/After gallery:</strong><br />
+      Placeholder grid in template<br />(client fills in real photos)
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <span class="label" style="color: #8b5cf6">WELLNESS</span>
+  <div
+    style="
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    "
+  >
+    <div
+      style="
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        padding: 0.875rem;
+        font-size: 0.8rem;
+        line-height: 1.9;
+        font-family: monospace;
+      "
+    >
+      brand {<br />
+      &nbsp;&nbsp;name, tagline, story<br />
+      &nbsp;&nbsp;phone, email<br />
+      &nbsp;&nbsp;address, hours<br />
+      &nbsp;&nbsp;logoUrl?<br />
+      &nbsp;&nbsp;primaryScale, accentScale<br />
+      }<br />
+      serviceCategories [ {<br />
+      &nbsp;&nbsp;name<br />
+      &nbsp;&nbsp;services [ {<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;name, description<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;price, duration<br />
+      &nbsp;&nbsp;}]<br />
+      }]<br />
+      team [ {<br />
+      &nbsp;&nbsp;name, role, bio<br />
+      &nbsp;&nbsp;imageKeywords<br />
+      }]<br />
+      reviews [ 3–5 { … } ]<br />
+      heroImageKeywords<br />
+      vibeImageKeywords [ 3 ]
+    </div>
+    <div
+      style="
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        line-height: 1.9;
+        padding-top: 0.25rem;
+      "
+    >
+      <strong style="color: var(--text)">Review screen shows:</strong><br />
+      Hero + team member images<br /><br />
+      <strong style="color: var(--text)">Deployed images:</strong><br />
+      public/images/hero.jpg<br />
+      public/images/vibe-{n}.jpg<br />
+      public/images/team-{n}.jpg<br /><br />
+      <strong style="color: var(--text)">Service prices:</strong><br />
+      Integers in pence (GBP)<br />same as stalls
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <span class="label" style="color: #10b981">HOSPITALITY</span>
+  <div
+    style="
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    "
+  >
+    <div
+      style="
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        padding: 0.875rem;
+        font-size: 0.8rem;
+        line-height: 1.9;
+        font-family: monospace;
+      "
+    >
+      brand {<br />
+      &nbsp;&nbsp;name, tagline, story<br />
+      &nbsp;&nbsp;phone, email<br />
+      &nbsp;&nbsp;address, hours<br />
+      &nbsp;&nbsp;logoUrl?<br />
+      &nbsp;&nbsp;primaryScale, accentScale<br />
+      }<br />
+      menuCategories [ {<br />
+      &nbsp;&nbsp;name (Starters/Mains…)<br />
+      &nbsp;&nbsp;items [ {<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;name, description<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;price, dietary[]<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;imageKeywords?<br />
+      &nbsp;&nbsp;}]<br />
+      }]<br />
+      essentials {<br />
+      &nbsp;&nbsp;todayHours, phone<br />
+      &nbsp;&nbsp;address<br />
+      }<br />
+      reviews [ 3–5 { … } ]<br />
+      heroImageKeywords<br />
+      instagramImageKeywords [ 6 ]
+    </div>
+    <div
+      style="
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        line-height: 1.9;
+        padding-top: 0.25rem;
+      "
+    >
+      <strong style="color: var(--text)">Review screen shows:</strong><br />
+      Hero + featured dish images<br /><br />
+      <strong style="color: var(--text)">Deployed images:</strong><br />
+      public/images/hero.jpg<br />
+      public/images/dish-{n}.jpg<br />
+      public/images/insta-{n}.jpg<br /><br />
+      <strong style="color: var(--text)">Menu prices:</strong><br />
+      Integers in pence (GBP)<br />
+      same as stalls
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Shared across all sectors</h3>
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; font-size: 0.8rem">
+    <span
+      style="
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.375rem;
+        padding: 0.3rem 0.6rem;
+      "
+      >ColorScale (50→950, 11 shades)</span
+    >
+    <span
+      style="
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.375rem;
+        padding: 0.3rem 0.6rem;
+      "
+      >cream / creamDark</span
+    >
+    <span
+      style="
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.375rem;
+        padding: 0.3rem 0.6rem;
+      "
+      >socialInstagram / socialFacebook</span
+    >
+    <span
+      style="
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.375rem;
+        padding: 0.3rem 0.6rem;
+      "
+      >prices in pence (GBP)</span
+    >
+    <span
+      style="
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.375rem;
+        padding: 0.3rem 0.6rem;
+      "
+      >imageKeywords → Gemini → Firecrawl → Unsplash</span
+    >
+  </div>
+</div>

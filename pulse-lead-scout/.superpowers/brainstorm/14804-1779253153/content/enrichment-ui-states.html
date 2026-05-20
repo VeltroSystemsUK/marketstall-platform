@@ -1,0 +1,448 @@
+<h2>Section 4: Contacts UI — Right Column States</h2>
+<p class="subtitle">
+  The three states the contacts slot cycles through. Click any card to confirm
+  it looks right.
+</p>
+
+<div class="cards">
+  <!-- State 1: Loading -->
+  <div class="card" data-choice="loading" onclick="toggleSelect(this)">
+    <div class="letter" style="font-size: 11px">1</div>
+    <div
+      class="card-image"
+      style="
+        padding: 14px;
+        background: #09090b;
+        border-radius: 8px;
+        font-family: monospace;
+      "
+    >
+      <div
+        style="
+          background: #18181b;
+          border-radius: 6px;
+          padding: 10px;
+          border: 1px solid #3f3f46;
+        "
+      >
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+          "
+        >
+          <div
+            style="
+              color: #6366f1;
+              font-size: 8px;
+              font-weight: bold;
+              text-transform: uppercase;
+              letter-spacing: 0.15em;
+            "
+          >
+            Contacts
+          </div>
+          <div style="display: flex; align-items: center; gap: 4px">
+            <div
+              style="
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: #4f46e5;
+                animation: pulse 1s infinite;
+              "
+            ></div>
+            <div
+              style="
+                color: #71717a;
+                font-size: 8px;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+              "
+            >
+              Scanning site
+            </div>
+          </div>
+        </div>
+        <!-- Skeleton rows -->
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div
+            style="
+              padding: 8px;
+              background: #09090b;
+              border-radius: 5px;
+              border: 1px solid #27272a;
+            "
+          >
+            <div
+              style="
+                height: 10px;
+                background: #27272a;
+                border-radius: 3px;
+                width: 60%;
+                margin-bottom: 5px;
+              "
+            ></div>
+            <div
+              style="
+                height: 8px;
+                background: #1f1f23;
+                border-radius: 3px;
+                width: 80%;
+              "
+            ></div>
+          </div>
+          <div
+            style="
+              padding: 8px;
+              background: #09090b;
+              border-radius: 5px;
+              border: 1px solid #27272a;
+            "
+          >
+            <div
+              style="
+                height: 10px;
+                background: #27272a;
+                border-radius: 3px;
+                width: 45%;
+                margin-bottom: 5px;
+              "
+            ></div>
+            <div
+              style="
+                height: 8px;
+                background: #1f1f23;
+                border-radius: 3px;
+                width: 70%;
+              "
+            ></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Loading</h3>
+      <p>
+        Skeleton shimmer appears immediately on lead click while Firecrawl +
+        Gemini run in the background. "Scanning site" pulse indicator.
+      </p>
+    </div>
+  </div>
+
+  <!-- State 2: Contacts found -->
+  <div class="card" data-choice="found" onclick="toggleSelect(this)">
+    <div class="letter" style="font-size: 11px">2</div>
+    <div
+      class="card-image"
+      style="
+        padding: 14px;
+        background: #09090b;
+        border-radius: 8px;
+        font-family: monospace;
+      "
+    >
+      <div
+        style="
+          background: #18181b;
+          border-radius: 6px;
+          padding: 10px;
+          border: 1px solid #3f3f46;
+        "
+      >
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+          "
+        >
+          <div
+            style="
+              color: #6366f1;
+              font-size: 8px;
+              font-weight: bold;
+              text-transform: uppercase;
+              letter-spacing: 0.15em;
+            "
+          >
+            Contacts
+          </div>
+          <div
+            style="
+              color: #22c55e;
+              font-size: 8px;
+              text-transform: uppercase;
+              letter-spacing: 0.1em;
+            "
+          >
+            2 found
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <!-- Contact 1 - personal email -->
+          <div
+            style="
+              padding: 7px 9px;
+              background: #09090b;
+              border-radius: 5px;
+              border: 1px solid #27272a;
+            "
+          >
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+              "
+            >
+              <div>
+                <div style="color: white; font-size: 10px; font-weight: 600">
+                  James Smith
+                </div>
+                <div
+                  style="
+                    color: #71717a;
+                    font-size: 8px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.08em;
+                  "
+                >
+                  Director · /about
+                </div>
+                <div style="color: #6366f1; font-size: 9px; margin-top: 2px">
+                  james@smithsonsplumbing.co.uk
+                </div>
+              </div>
+              <div
+                style="
+                  display: flex;
+                  flex-direction: column;
+                  gap: 3px;
+                  align-items: flex-end;
+                "
+              >
+                <div style="display: flex; gap: 3px">
+                  <div
+                    style="
+                      border: 1px solid #3f3f46;
+                      color: #a1a1aa;
+                      font-size: 7px;
+                      padding: 2px 6px;
+                      border-radius: 3px;
+                      cursor: pointer;
+                    "
+                  >
+                    Copy
+                  </div>
+                  <div
+                    style="
+                      background: #4f46e5;
+                      color: white;
+                      font-size: 7px;
+                      padding: 2px 6px;
+                      border-radius: 3px;
+                      cursor: pointer;
+                    "
+                  >
+                    ✉
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Contact 2 - generic email -->
+          <div
+            style="
+              padding: 7px 9px;
+              background: #09090b;
+              border-radius: 5px;
+              border: 1px solid #27272a;
+              opacity: 0.75;
+            "
+          >
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+              "
+            >
+              <div>
+                <div style="color: #a1a1aa; font-size: 10px; font-weight: 600">
+                  General Enquiries
+                </div>
+                <div
+                  style="
+                    color: #71717a;
+                    font-size: 8px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.08em;
+                  "
+                >
+                  Generic · /contact
+                </div>
+                <div style="color: #71717a; font-size: 9px; margin-top: 2px">
+                  info@smithsonsplumbing.co.uk
+                </div>
+              </div>
+              <div style="display: flex; gap: 3px">
+                <div
+                  style="
+                    border: 1px solid #3f3f46;
+                    color: #a1a1aa;
+                    font-size: 7px;
+                    padding: 2px 6px;
+                    border-radius: 3px;
+                    cursor: pointer;
+                  "
+                >
+                  Copy
+                </div>
+                <div
+                  style="
+                    background: #3f3f46;
+                    color: #a1a1aa;
+                    font-size: 7px;
+                    padding: 2px 6px;
+                    border-radius: 3px;
+                    cursor: pointer;
+                  "
+                >
+                  ✉
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Contacts Found</h3>
+      <p>
+        Named contacts shown at full opacity with title and source page.
+        Generic/role-based emails shown dimmed. Copy email to clipboard or open
+        a draft (linked to Email Client later).
+      </p>
+    </div>
+  </div>
+
+  <!-- State 3: None found / Failed -->
+  <div class="card" data-choice="empty" onclick="toggleSelect(this)">
+    <div class="letter" style="font-size: 11px">3</div>
+    <div
+      class="card-image"
+      style="
+        padding: 14px;
+        background: #09090b;
+        border-radius: 8px;
+        font-family: monospace;
+      "
+    >
+      <div
+        style="
+          background: #18181b;
+          border-radius: 6px;
+          padding: 10px;
+          border: 1px solid #27272a;
+        "
+      >
+        <div
+          style="
+            color: #6366f1;
+            font-size: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 8px;
+          "
+        >
+          Contacts
+        </div>
+        <div style="text-align: center; padding: 12px 8px">
+          <div style="color: #3f3f46; font-size: 18px; margin-bottom: 4px">
+            ○
+          </div>
+          <div
+            style="
+              color: #52525b;
+              font-size: 9px;
+              text-transform: uppercase;
+              letter-spacing: 0.1em;
+              margin-bottom: 8px;
+            "
+          >
+            None found publicly
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px">
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                background: #09090b;
+                border: 1px solid #27272a;
+                border-radius: 5px;
+                padding: 5px 8px;
+              "
+            >
+              <div
+                style="
+                  background: #1f1f23;
+                  border-radius: 3px;
+                  flex: 1;
+                  height: 16px;
+                  display: flex;
+                  align-items: center;
+                  padding: 0 6px;
+                "
+              >
+                <div style="color: #52525b; font-size: 8px">
+                  Add email manually...
+                </div>
+              </div>
+              <div
+                style="
+                  background: #3f3f46;
+                  color: #a1a1aa;
+                  font-size: 7px;
+                  padding: 3px 7px;
+                  border-radius: 3px;
+                "
+              >
+                Add
+              </div>
+            </div>
+            <div
+              style="
+                color: #52525b;
+                font-size: 8px;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                cursor: pointer;
+              "
+            >
+              ↺ Retry scan
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>None Found / Failed</h3>
+      <p>
+        Clean empty state with a manual email entry field and a retry button. No
+        contacts stored but result is still cached (so retry is explicit, not
+        automatic).
+      </p>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top: 20px; opacity: 0.5">
+  All three states apply to the same slot in the right column of the lead detail
+  view. Click to confirm.
+</p>

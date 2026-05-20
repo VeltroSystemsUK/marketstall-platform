@@ -1,0 +1,583 @@
+<h2>Where should enriched contact data appear?</h2>
+<p class="subtitle">
+  When you click a lead, enrichment fires and returns names, emails, and the
+  live website URL. Pick the layout that feels right.
+</p>
+
+<div class="cards">
+  <!-- Option A -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div
+      class="card-image"
+      style="
+        padding: 16px;
+        background: #09090b;
+        border-radius: 8px;
+        font-family: monospace;
+      "
+    >
+      <!-- Header bar mockup -->
+      <div
+        style="
+          background: #18181b;
+          border-radius: 8px;
+          padding: 12px 14px;
+          margin-bottom: 8px;
+          border: 1px solid #27272a;
+        "
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+          "
+        >
+          <div>
+            <div
+              style="
+                display: flex;
+                gap: 6px;
+                align-items: center;
+                margin-bottom: 4px;
+              "
+            >
+              <div
+                style="
+                  background: #4f46e5;
+                  color: white;
+                  font-size: 9px;
+                  padding: 2px 6px;
+                  border-radius: 4px;
+                  font-weight: bold;
+                "
+              >
+                SCORE: 87
+              </div>
+              <div style="color: #52525b; font-size: 9px">plmb-a1b2</div>
+            </div>
+            <div style="color: white; font-weight: bold; font-size: 13px">
+              Smith & Sons Plumbing
+            </div>
+            <div style="color: #6366f1; font-size: 10px; margin-top: 2px">
+              🌐 smithsonsplumbing.co.uk
+            </div>
+          </div>
+          <div style="display: flex; gap: 6px">
+            <div
+              style="
+                border: 1px solid #3f3f46;
+                color: #a1a1aa;
+                font-size: 9px;
+                padding: 4px 8px;
+                border-radius: 6px;
+              "
+            >
+              Save
+            </div>
+            <div
+              style="
+                background: linear-gradient(to right, #4f46e5, #7c3aed);
+                color: white;
+                font-size: 9px;
+                padding: 4px 10px;
+                border-radius: 6px;
+                font-weight: bold;
+              "
+            >
+              Generate Demo ✦
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Contacts panel below header -->
+      <div
+        style="
+          background: #18181b;
+          border-radius: 8px;
+          padding: 10px 14px;
+          border: 1px solid #3f3f46;
+          margin-bottom: 8px;
+        "
+      >
+        <div
+          style="
+            color: #6366f1;
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 8px;
+          "
+        >
+          Contacts Found — 2
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              padding: 6px 10px;
+              background: #09090b;
+              border-radius: 6px;
+              border: 1px solid #27272a;
+            "
+          >
+            <div>
+              <div style="color: white; font-size: 11px; font-weight: 600">
+                James Smith
+              </div>
+              <div style="color: #6366f1; font-size: 10px">
+                james@smithsonsplumbing.co.uk
+                <span style="color: #22c55e; font-size: 8px">✓ verified</span>
+              </div>
+            </div>
+            <div style="display: flex; gap: 4px">
+              <div
+                style="
+                  border: 1px solid #3f3f46;
+                  color: #a1a1aa;
+                  font-size: 8px;
+                  padding: 3px 7px;
+                  border-radius: 4px;
+                "
+              >
+                Copy
+              </div>
+              <div
+                style="
+                  background: #4f46e5;
+                  color: white;
+                  font-size: 8px;
+                  padding: 3px 7px;
+                  border-radius: 4px;
+                "
+              >
+                Email
+              </div>
+            </div>
+          </div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              padding: 6px 10px;
+              background: #09090b;
+              border-radius: 6px;
+              border: 1px solid #27272a;
+            "
+          >
+            <div>
+              <div style="color: white; font-size: 11px; font-weight: 600">
+                Sarah Smith
+              </div>
+              <div style="color: #71717a; font-size: 10px">
+                info@smithsonsplumbing.co.uk
+                <span style="color: #f59e0b; font-size: 8px">⚠ role-based</span>
+              </div>
+            </div>
+            <div style="display: flex; gap: 4px">
+              <div
+                style="
+                  border: 1px solid #3f3f46;
+                  color: #a1a1aa;
+                  font-size: 8px;
+                  padding: 3px 7px;
+                  border-radius: 4px;
+                "
+              >
+                Copy
+              </div>
+              <div
+                style="
+                  background: #4f46e5;
+                  color: white;
+                  font-size: 8px;
+                  padding: 3px 7px;
+                  border-radius: 4px;
+                "
+              >
+                Email
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Rest of panels -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+        <div
+          style="
+            background: #18181b;
+            border-radius: 6px;
+            padding: 8px;
+            border: 1px solid #27272a;
+            opacity: 0.5;
+          "
+        >
+          <div
+            style="
+              color: #6366f1;
+              font-size: 8px;
+              font-weight: bold;
+              text-transform: uppercase;
+              letter-spacing: 0.1em;
+              margin-bottom: 4px;
+            "
+          >
+            Pitch Intel
+          </div>
+          <div style="color: #a1a1aa; font-size: 9px; font-style: italic">
+            "No booking system…"
+          </div>
+        </div>
+        <div
+          style="
+            background: #18181b;
+            border-radius: 6px;
+            padding: 8px;
+            border: 1px solid #27272a;
+            opacity: 0.5;
+          "
+        >
+          <div
+            style="
+              color: #52525b;
+              font-size: 8px;
+              font-weight: bold;
+              text-transform: uppercase;
+              letter-spacing: 0.1em;
+              margin-bottom: 4px;
+            "
+          >
+            Digital Status
+          </div>
+          <div style="color: #a1a1aa; font-size: 9px">OUTDATED STATIC</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Contacts Panel — Below Header</h3>
+      <p>
+        Website URL in the header. Contacts strip sits just below, full-width,
+        before the pitch intel and other detail panels. Direct Copy / Email
+        buttons per contact.
+      </p>
+    </div>
+  </div>
+
+  <!-- Option B -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div
+      class="card-image"
+      style="
+        padding: 16px;
+        background: #09090b;
+        border-radius: 8px;
+        font-family: monospace;
+      "
+    >
+      <!-- Header bar mockup -->
+      <div
+        style="
+          background: #18181b;
+          border-radius: 8px;
+          padding: 12px 14px;
+          margin-bottom: 8px;
+          border: 1px solid #27272a;
+        "
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+          "
+        >
+          <div>
+            <div
+              style="
+                display: flex;
+                gap: 6px;
+                align-items: center;
+                margin-bottom: 4px;
+              "
+            >
+              <div
+                style="
+                  background: #4f46e5;
+                  color: white;
+                  font-size: 9px;
+                  padding: 2px 6px;
+                  border-radius: 4px;
+                  font-weight: bold;
+                "
+              >
+                SCORE: 87
+              </div>
+              <div style="color: #52525b; font-size: 9px">plmb-a1b2</div>
+            </div>
+            <div style="color: white; font-weight: bold; font-size: 13px">
+              Smith & Sons Plumbing
+            </div>
+            <div style="color: #6366f1; font-size: 10px; margin-top: 2px">
+              🌐 smithsonsplumbing.co.uk
+            </div>
+          </div>
+          <div style="display: flex; gap: 6px">
+            <div
+              style="
+                border: 1px solid #3f3f46;
+                color: #a1a1aa;
+                font-size: 9px;
+                padding: 4px 8px;
+                border-radius: 6px;
+              "
+            >
+              Save
+            </div>
+            <div
+              style="
+                background: linear-gradient(to right, #4f46e5, #7c3aed);
+                color: white;
+                font-size: 9px;
+                padding: 4px 10px;
+                border-radius: 6px;
+                font-weight: bold;
+              "
+            >
+              Generate Demo ✦
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Two column grid -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+        <div>
+          <!-- Pitch Intel -->
+          <div
+            style="
+              background: #18181b;
+              border-radius: 6px;
+              padding: 8px;
+              border-left: 2px solid #6366f1;
+              margin-bottom: 8px;
+            "
+          >
+            <div
+              style="
+                color: #6366f1;
+                font-size: 8px;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                margin-bottom: 4px;
+              "
+            >
+              Pitch Intel
+            </div>
+            <div style="color: #d4d4d8; font-size: 9px; font-style: italic">
+              "No booking system — losing jobs to competitors…"
+            </div>
+          </div>
+          <!-- Digital Status -->
+          <div
+            style="
+              background: #18181b;
+              border-radius: 6px;
+              padding: 8px;
+              border: 1px solid #27272a;
+            "
+          >
+            <div
+              style="
+                color: #52525b;
+                font-size: 8px;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                margin-bottom: 4px;
+              "
+            >
+              Digital Status
+            </div>
+            <div style="color: #d4d4d8; font-size: 9px">OUTDATED STATIC</div>
+          </div>
+        </div>
+        <div>
+          <!-- Contacts in right column -->
+          <div
+            style="
+              background: #18181b;
+              border-radius: 6px;
+              padding: 8px;
+              border: 1px solid #3f3f46;
+            "
+          >
+            <div
+              style="
+                color: #6366f1;
+                font-size: 8px;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                margin-bottom: 6px;
+              "
+            >
+              Contacts — 2 found
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <div
+                style="
+                  padding: 5px 7px;
+                  background: #09090b;
+                  border-radius: 5px;
+                  border: 1px solid #27272a;
+                "
+              >
+                <div style="color: white; font-size: 10px; font-weight: 600">
+                  James Smith
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                  "
+                >
+                  <div style="color: #6366f1; font-size: 9px">
+                    james@smithsons…
+                  </div>
+                  <div style="display: flex; gap: 3px">
+                    <div
+                      style="
+                        border: 1px solid #3f3f46;
+                        color: #a1a1aa;
+                        font-size: 7px;
+                        padding: 2px 5px;
+                        border-radius: 3px;
+                      "
+                    >
+                      Copy
+                    </div>
+                    <div
+                      style="
+                        background: #4f46e5;
+                        color: white;
+                        font-size: 7px;
+                        padding: 2px 5px;
+                        border-radius: 3px;
+                      "
+                    >
+                      ✉
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                style="
+                  padding: 5px 7px;
+                  background: #09090b;
+                  border-radius: 5px;
+                  border: 1px solid #27272a;
+                "
+              >
+                <div style="color: white; font-size: 10px; font-weight: 600">
+                  Sarah Smith
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                  "
+                >
+                  <div style="color: #71717a; font-size: 9px">
+                    info@smithsons…
+                  </div>
+                  <div style="display: flex; gap: 3px">
+                    <div
+                      style="
+                        border: 1px solid #3f3f46;
+                        color: #a1a1aa;
+                        font-size: 7px;
+                        padding: 2px 5px;
+                        border-radius: 3px;
+                      "
+                    >
+                      Copy
+                    </div>
+                    <div
+                      style="
+                        background: #4f46e5;
+                        color: white;
+                        font-size: 7px;
+                        padding: 2px 5px;
+                        border-radius: 3px;
+                      "
+                    >
+                      ✉
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- AI Projection -->
+          <div
+            style="
+              background: #18181b;
+              border-radius: 6px;
+              padding: 8px;
+              border: 1px solid #27272a;
+              margin-top: 8px;
+              opacity: 0.6;
+            "
+          >
+            <div
+              style="
+                color: #52525b;
+                font-size: 8px;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                margin-bottom: 4px;
+              "
+            >
+              AI Projection
+            </div>
+            <div
+              style="
+                color: #6366f1;
+                font-size: 9px;
+                background: #1e1b4b;
+                border: 1px solid #3730a3;
+                padding: 2px 6px;
+                border-radius: 4px;
+                display: inline-block;
+              "
+            >
+              trades
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Contacts — In the Right Column</h3>
+      <p>
+        Website URL in the header as before. Contacts slot into the existing
+        right-column alongside AI Projection — feels native to the current
+        layout without adding a new row.
+      </p>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top: 24px; opacity: 0.6">
+  Click a card to select. Both show a loading skeleton while enrichment runs in
+  the background.
+</p>

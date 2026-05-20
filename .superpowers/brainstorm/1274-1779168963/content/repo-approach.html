@@ -1,0 +1,101 @@
+<h2>Template repo architecture</h2>
+<p class="subtitle">
+  How should the 3 new sectors be structured on GitHub / Vercel?
+</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>3 separate repos (current pattern)</h3>
+      <p>
+        One repo per sector: <code>biztemplate-trades</code>,
+        <code>biztemplate-wellness</code>, <code>biztemplate-hospitality</code>.
+        Each is an independent Next.js app deployed to its own Vercel project.
+      </p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Exactly mirrors existing stall pattern — zero new infra</li>
+            <li>Sectors can diverge freely over time</li>
+            <li>
+              Independent deployments — one broken sector doesn't touch others
+            </li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>3× the repos to maintain</li>
+            <li>Shared UI fixes must be applied 3 times</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>One shared repo, sector via config</h3>
+      <p>
+        Single <code>biztemplate</code> repo. A
+        <code>sector.config.ts</code> file (written by the agent) controls which
+        layout, sections, and components render. One Vercel project, one
+        deployment.
+      </p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Single codebase — fix once, all sectors benefit</li>
+            <li>Easier to add sector 4, 5, 6 later</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>
+              All three clients share a single live URL — only shows the last
+              deployed sector
+            </li>
+            <li>
+              Template complexity grows: conditional sections, sector branching
+              in components
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>One shared codebase, 3 separate repos (monorepo fork)</h3>
+      <p>
+        Shared component library in a private package. Each sector forks it into
+        its own repo and installs the library. Updates published once, consumed
+        by all three.
+      </p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Best of both: independent deployments + shared UI</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>
+              Most complex setup — private npm package, versioning, publish step
+            </li>
+            <li>Premature for 3 templates</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

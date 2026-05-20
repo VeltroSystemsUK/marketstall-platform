@@ -1,0 +1,96 @@
+<h2>Image sourcing for the new templates</h2>
+<p class="subtitle">
+  How should images be populated in TRADES, WELLNESS, and HOSPITALITY demos?
+</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Gemini generation (current approach)</h3>
+      <p>
+        Same as food stalls — Claude returns prompts, Gemini generates images,
+        they're committed to the repo as static files.
+      </p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Already wired up — zero new API keys or code</li>
+            <li>Images are truly custom, not stock</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>
+              Gemini was tuned for food — quality varies for a plumber's van or
+              a spa treatment room
+            </li>
+            <li>AI-generated business photos look uncanny up close</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Unsplash/Pexels API with AI keywords</h3>
+      <p>
+        Claude returns <code>image_search_keywords</code> per image slot. The
+        deploy pipeline hits Unsplash (or Pexels) and commits the downloaded
+        photo.
+      </p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Real photography — looks polished on a tablet demo</li>
+            <li>Massive library for trades, wellness, hospitality</li>
+            <li>Free tier covers demo volume easily</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>One new API key (Unsplash or Pexels)</li>
+            <li>Stock photos feel less bespoke than generated ones</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Hybrid — scrape client's own images first, Unsplash fallback</h3>
+      <p>
+        Try to use images scraped directly from the client's existing site.
+        Where those are missing or low quality, fall back to Unsplash keyword
+        search.
+      </p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>
+              Demo uses the client's <em>actual</em> photos — most impressive to
+              the client
+            </li>
+            <li>Graceful fallback means the demo always looks complete</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Legacy sites often have compressed, badly cropped images</li>
+            <li>Slightly more logic in the pipeline</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

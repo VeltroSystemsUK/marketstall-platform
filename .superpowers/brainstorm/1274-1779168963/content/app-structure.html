@@ -1,0 +1,259 @@
+<h2>bizcustomizer — app structure & build order</h2>
+<p class="subtitle">
+  Identical functionality to marketstall-customizer, adapted for service
+  business sectors
+</p>
+
+<div class="section">
+  <h3>File structure</h3>
+  <div
+    style="
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 0.75rem;
+    "
+  >
+    <div
+      style="
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1rem;
+        font-family: monospace;
+        font-size: 0.78rem;
+        line-height: 2;
+      "
+    >
+      <span style="color: var(--text-muted)"># New standalone app</span><br />
+      bizcustomizer/<br />
+      &nbsp;&nbsp;app/<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;page.tsx
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+        style="color: var(--text-muted); font-size: 0.72rem"
+        >← UI (same as stall)</span
+      ><br />
+      &nbsp;&nbsp;&nbsp;&nbsp;api/customize/<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;route.ts
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+        style="color: var(--text-muted); font-size: 0.72rem"
+        >← scrape+generate+images</span
+      ><br />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;deploy/<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;route.ts &nbsp;&nbsp;<span
+        style="color: var(--text-muted); font-size: 0.72rem"
+        >← commit+Vercel trigger</span
+      ><br />
+      &nbsp;&nbsp;lib/<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;sectors.ts
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+        style="color: var(--text-muted); font-size: 0.72rem"
+        >← TRADES/WELLNESS/HOSP config</span
+      ><br />
+      &nbsp;&nbsp;&nbsp;&nbsp;agent.ts
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+        style="color: var(--text-muted); font-size: 0.72rem"
+        >← scrape, generate, images</span
+      ><br />
+      &nbsp;&nbsp;&nbsp;&nbsp;github.ts
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+        style="color: var(--text-muted); font-size: 0.72rem"
+        >← copied from stall (unchanged)</span
+      ><br />
+      &nbsp;&nbsp;&nbsp;&nbsp;unsplash.ts &nbsp;&nbsp;&nbsp;&nbsp;<span
+        style="color: var(--text-muted); font-size: 0.72rem"
+        >← new: keyword → image</span
+      >
+    </div>
+    <div style="font-size: 0.82rem; line-height: 1.9">
+      <strong>Same as marketstall-customizer:</strong>
+      <ul
+        style="
+          color: var(--text-muted);
+          margin: 0.4rem 0 0 0;
+          padding-left: 1.1rem;
+        "
+      >
+        <li>Auth (ADMIN_TOKEN)</li>
+        <li>Streaming NDJSON API</li>
+        <li>Review → Deploy flow</li>
+        <li>Octokit GitHub commits</li>
+        <li>Firecrawl scraping</li>
+        <li>Gemini image generation</li>
+        <li>Claude relevance check</li>
+      </ul>
+      <strong style="display: block; margin-top: 0.75rem"
+        >New in bizcustomizer:</strong
+      >
+      <ul
+        style="
+          color: var(--text-muted);
+          margin: 0.4rem 0 0 0;
+          padding-left: 1.1rem;
+        "
+      >
+        <li>Sector dropdown (not stall)</li>
+        <li>3 sector-specific LLM prompts</li>
+        <li>3 sector output schemas</li>
+        <li>3 <code>buildSiteConfig()</code> builders</li>
+        <li>Unsplash fallback (<code>unsplash.ts</code>)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Build order</h3>
+  <div
+    style="
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    "
+  >
+    <div
+      style="
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+        padding: 0.7rem 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        font-size: 0.85rem;
+      "
+    >
+      <span style="font-weight: 700; min-width: 2rem; color: var(--accent)"
+        >1</span
+      >
+      <div>
+        <strong>bizcustomizer scaffold</strong> — Next.js app, auth, UI shell,
+        streaming API skeleton, github.ts, env vars
+      </div>
+    </div>
+    <div
+      style="
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+        padding: 0.7rem 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        font-size: 0.85rem;
+      "
+    >
+      <span style="font-weight: 700; min-width: 2rem; color: var(--accent)"
+        >2</span
+      >
+      <div>
+        <strong>biztemplate-trades</strong> — Build the single-page Next.js
+        template, define TradesOutput schema, write LLM prompt + builders, wire
+        into customizer, end-to-end test
+      </div>
+    </div>
+    <div
+      style="
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+        padding: 0.7rem 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        font-size: 0.85rem;
+      "
+    >
+      <span style="font-weight: 700; min-width: 2rem; color: var(--accent)"
+        >3</span
+      >
+      <div>
+        <strong>biztemplate-wellness</strong> — Multi-page template (/,
+        /services, /team, /book), WellnessOutput schema + prompt + builders
+      </div>
+    </div>
+    <div
+      style="
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+        padding: 0.7rem 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        font-size: 0.85rem;
+      "
+    >
+      <span style="font-weight: 700; min-width: 2rem; color: var(--border)"
+        >4</span
+      >
+      <div>
+        <strong>biztemplate-hospitality</strong> — Multi-page template (/,
+        /menu, /book), HospitalityOutput schema + prompt + builders
+      </div>
+    </div>
+    <div
+      style="
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+        padding: 0.7rem 1rem;
+        background: var(--surface-raised);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        font-size: 0.85rem;
+      "
+    >
+      <span style="font-weight: 700; min-width: 2rem; color: var(--border)"
+        >5</span
+      >
+      <div>
+        <strong>unsplash.ts fallback</strong> — Add Unsplash keyword search as
+        final fallback in image pipeline (needs UNSPLASH_ACCESS_KEY)
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Environment variables needed</h3>
+  <div
+    style="
+      font-size: 0.82rem;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      font-family: monospace;
+      line-height: 2;
+    "
+  >
+    ADMIN_TOKEN
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+      style="color: var(--text-muted); font-family: sans-serif"
+      >← same as stall customizer</span
+    ><br />
+    ANTHROPIC_API_KEY &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+      style="color: var(--text-muted); font-family: sans-serif"
+      >← same</span
+    ><br />
+    FIRECRAWL_API_KEY &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+      style="color: var(--text-muted); font-family: sans-serif"
+      >← same</span
+    ><br />
+    GEMINI_API_KEY &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+      style="color: var(--text-muted); font-family: sans-serif"
+      >← same</span
+    ><br />
+    GITHUB_TOKEN
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+      style="color: var(--text-muted); font-family: sans-serif"
+      >← same</span
+    ><br />
+    UNSPLASH_ACCESS_KEY &nbsp;&nbsp;&nbsp;<span
+      style="color: var(--text-muted); font-family: sans-serif"
+      >← new (free tier)</span
+    >
+  </div>
+</div>
