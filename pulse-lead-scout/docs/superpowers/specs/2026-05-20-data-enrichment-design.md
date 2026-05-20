@@ -182,7 +182,8 @@ Contacts slot sits at the top of the right column. AI Projection moves below it.
 
 - Named contacts: full opacity, name + title + source page + email, Copy and Email buttons
 - Generic contacts: 70% opacity, email only (no name), Copy button only (Email button greyed)
-- "Email" button is a stub in this sub-project — it wires to the Email Client in sub-project 3
+- "Email" button opens a compose drawer (see Email Compose section below)
+- Each contact shows a verification badge (see Contact Verification section below)
 
 **None found / failed:**
 
@@ -194,24 +195,128 @@ Contacts slot sits at the top of the right column. AI Projection moves below it.
 
 - Lead search / Gemini analysis pipeline
 - Sidebar / LeadRow component
-- Saved Leads view
 - Settings modal
 
 ---
 
-## New Dependency
+## Email Compose
+
+When the "Email" button is clicked on a contact, a compose drawer slides in from the right (over the lead detail view, not a modal). It pre-fills:
+
+- **To:** contact email address
+- **Subject:** blank (user fills in)
+- **Body:** blank, with the lead's `pitch_hook_angle` available as a one-click insert
+
+Sending uses `nodemailer` on the server via a new `POST /api/send-email` endpoint. The user's outbound SMTP credentials (host, port, user, pass) are stored in `.env` and configured once. Sent emails are stored in a new Dexie `sent_emails` table (see Data Model addition below).
+
+The compose drawer is the foundation for the full Email Client in sub-project 3 — same component, same endpoint, same sent log.
+
+**New Dexie table — `sent_emails`:**
+
+```typescript
+interface SentEmail {
+  id: string; // uuid
+  toEmail: string;
+  toName?: string;
+  subject: string;
+  body: string;
+  leadId: string; // which lead this was sent for
+  sentAt: number;
+}
+// Indexed on: id, sentAt, leadId
+```
+
+**New env vars for SMTP:**
 
 ```
-@mendable/firecrawl-js
+SMTP_HOST=
+SMTP_PORT=
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM=   # e.g. shaun@veltro.co.uk
 ```
-
-Added to `package.json` dependencies. Used server-side only. No frontend bundle impact.
 
 ---
 
-## Out of Scope (future sub-projects)
+## Manual Contacts
 
-- Sending emails from the contacts slot → Email Client (sub-project 3)
-- Manually adding contacts to a persistent contact record → CRM Core (sub-project 2)
-- Bulk enrichment across all saved leads → Agent System (sub-project 6)
-- Contact verification / bounce checking → Email Marketing (sub-project 4)
+When no contacts are found (or alongside found ones), the user can manually enter a contact. Manual entries are saved to a dedicated Dexie `contacts` table — not just in the enrichment record — making them persistent and searchable across leads.
+
+**New Dexie table — `contacts`:**
+
+```typescript
+interface ContactRecord {
+  id: string; // uuid
+  email: string;
+  name?: string;
+  title?: string;
+  phone?: string;
+  leadId: string; // which lead this contact belongs to
+  domain: string; // prospect's domain
+  source: "enriched" | "manual";
+  verificationStatus: "unverified" | "valid" | "risky" | "invalid";
+  createdAt: number;
+}
+// Indexed on: id, leadId, domain, email
+```
+
+Enrichment results are also written here (in addition to the `enrichments` cache), giving one unified contacts store. This table becomes the foundation for CRM Core (sub-project 2).
+
+The Saved Leads view gains a contact count badge on each saved lead card, pulling from this table.
+
+---
+
+## Bulk Enrichment
+
+A **"Enrich All Saved"** button appears in the Saved Leads view header. It:
+
+1. Fetches all saved leads from Dexie that do not yet have a cached enrichment result
+2. Runs enrichment sequentially (one at a time, 1.5s delay between requests to avoid rate-limiting Firecrawl)
+3. Shows a progress indicator: "Enriching 3 / 12 leads…"
+4. Can be cancelled mid-run
+
+Results are stored in the same `enrichments` and `contacts` tables as on-demand enrichment. Already-enriched leads are skipped.
+
+---
+
+## Contact Verification
+
+After enrichment (both on-demand and bulk), each contact email is automatically verified via a new `POST /api/verify-email` endpoint. Verification runs in the background after contacts are rendered — the badge updates in place when the result comes back.
+
+**Verification checks (server-side):**
+
+1. Syntax validation (RFC 5322)
+2. DNS MX record lookup — confirms the domain accepts email
+3. Role-based detection (info@, admin@, sales@, etc.) — already flagged by `isGeneric`
+
+No SMTP handshake in v1 (avoids being flagged as a scanner). Verification result cached in the `contacts` table as `verificationStatus`.
+
+**Badge display:**
+
+- `valid` → green dot ✓
+- `risky` → amber dot (role-based, or MX found but uncertain)
+- `invalid` → red dot ✗ (bad syntax or no MX record)
+- `unverified` → grey dot (pending)
+
+**New server endpoint:** `POST /api/verify-email` — `{ email: string }` → `{ status: 'valid' | 'risky' | 'invalid' }`
+
+---
+
+## New Dependencies
+
+```
+@mendable/firecrawl-js   — website scraping (server-side only)
+nodemailer               — SMTP email sending (server-side only)
+uuid                     — generating contact and email IDs
+```
+
+All server-side only. No frontend bundle impact.
+
+---
+
+## Dexie Version Summary
+
+| Version       | Tables added                             |
+| ------------- | ---------------------------------------- |
+| 1 (existing)  | `leads`                                  |
+| 2 (this spec) | `enrichments`, `contacts`, `sent_emails` |
