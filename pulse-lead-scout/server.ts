@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
-import FirecrawlApp from "@mendable/firecrawl-js";
+import { Firecrawl as FirecrawlApp } from "@mendable/firecrawl-js";
 import dotenv from "dotenv";
 import { promises as dns } from "dns";
 import nodemailer from "nodemailer";
