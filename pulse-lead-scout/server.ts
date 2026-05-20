@@ -5,6 +5,7 @@ import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
 import FirecrawlApp from "@mendable/firecrawl-js";
 import dotenv from "dotenv";
 import { promises as dns } from "dns";
+import nodemailer from "nodemailer";
 
 dotenv.config();
 
@@ -378,6 +379,47 @@ app.post("/api/verify-email", async (req, res) => {
   } catch (err: any) {
     console.error("[verify-email]", err.message);
     return res.status(500).json({ error: "Verification failed" });
+  }
+});
+
+app.post("/api/send-email", async (req, res) => {
+  try {
+    const { to, toName, subject, body, leadId } = req.body;
+
+    if (!to || !subject || !body) {
+      return res
+        .status(400)
+        .json({ error: "to, subject, and body are required" });
+    }
+
+    const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM } =
+      process.env;
+
+    if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
+      return res.status(503).json({
+        error:
+          "SMTP not configured — add SMTP_HOST, SMTP_USER, SMTP_PASS to .env and restart the server",
+      });
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: parseInt(SMTP_PORT || "587"),
+      secure: parseInt(SMTP_PORT || "587") === 465,
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
+    });
+
+    await transporter.sendMail({
+      from: SMTP_FROM || SMTP_USER,
+      to: toName ? `"${toName}" <${to}>` : to,
+      subject,
+      text: body,
+    });
+
+    return res.json({ success: true });
+  } catch (err: any) {
+    console.error("[send-email]", err.message);
+    return res.status(500).json({ error: err.message });
   }
 });
 
