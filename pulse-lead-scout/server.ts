@@ -4,6 +4,7 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
 import FirecrawlApp from "@mendable/firecrawl-js";
 import dotenv from "dotenv";
+import { promises as dns } from "dns";
 
 dotenv.config();
 
@@ -338,6 +339,45 @@ If no contacts are found, return an empty array [].`,
   } catch (err: any) {
     console.error("[enrich-lead]", err.message);
     return res.json({ status: "failed", contacts: [] });
+  }
+});
+
+app.post("/api/verify-email", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email || typeof email !== "string") {
+      return res.status(400).json({ error: "email is required" });
+    }
+
+    // Syntax check
+    const syntaxOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
+    if (!syntaxOk) {
+      return res.json({ status: "invalid" });
+    }
+
+    const domain = email.split("@")[1];
+
+    // MX record check
+    try {
+      const mxRecords = await dns.resolveMx(domain);
+      if (!mxRecords || mxRecords.length === 0) {
+        return res.json({ status: "invalid" });
+      }
+    } catch {
+      return res.json({ status: "invalid" });
+    }
+
+    // Role-based check
+    const local = email.split("@")[0].toLowerCase();
+    const generic = GENERIC_EMAIL_PREFIXES.some(
+      (p) => local === p || local.startsWith(p + "."),
+    );
+
+    return res.json({ status: generic ? "risky" : "valid" });
+  } catch (err: any) {
+    console.error("[verify-email]", err.message);
+    return res.status(500).json({ error: "Verification failed" });
   }
 });
 
