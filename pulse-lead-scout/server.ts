@@ -2,6 +2,7 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
+import FirecrawlApp from "@mendable/firecrawl-js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -18,6 +19,43 @@ const ai = new GoogleGenAI({
     },
   },
 });
+
+const firecrawl = new FirecrawlApp({
+  apiKey: process.env.FIRECRAWL_API_KEY || "",
+});
+
+const GENERIC_EMAIL_PREFIXES = [
+  "info",
+  "admin",
+  "sales",
+  "enquiries",
+  "hello",
+  "support",
+  "contact",
+  "office",
+  "reception",
+  "accounts",
+  "noreply",
+  "no-reply",
+  "mail",
+  "post",
+];
+
+function isGenericEmail(email: string): boolean {
+  const local = email.split("@")[0].toLowerCase();
+  return GENERIC_EMAIL_PREFIXES.some(
+    (p) => local === p || local.startsWith(p + "."),
+  );
+}
+
+function extractDomain(url: string): string | null {
+  try {
+    const withProtocol = url.startsWith("http") ? url : `https://${url}`;
+    return new URL(withProtocol).hostname.replace(/^www\./, "");
+  } catch {
+    return null;
+  }
+}
 
 app.use(express.json({ limit: "10mb" }));
 
@@ -192,6 +230,114 @@ app.post("/api/analyze-leads", async (req, res) => {
       details: error.stack,
       raw: error,
     });
+  }
+});
+
+app.post("/api/enrich-lead", async (req, res) => {
+  try {
+    const { domain, leadId } = req.body;
+
+    if (!domain) {
+      return res.status(400).json({ error: "domain is required" });
+    }
+
+    const urls = [
+      `https://${domain}`,
+      `https://${domain}/contact`,
+      `https://${domain}/about`,
+    ];
+
+    const pageLabels = ["homepage", "contact", "about"] as const;
+
+    const scrapeResults = await Promise.allSettled(
+      urls.map((url) => firecrawl.scrape(url, { formats: ["markdown"] })),
+    );
+
+    const pages = scrapeResults
+      .map((result, i) => {
+        if (result.status === "rejected") return null;
+        const val = result.value as any;
+        if (!val?.success || !val?.markdown) return null;
+        return {
+          markdown: (val.markdown as string).slice(0, 3000),
+          sourcePage: pageLabels[i],
+        };
+      })
+      .filter(
+        (
+          p,
+        ): p is {
+          markdown: string;
+          sourcePage: "homepage" | "contact" | "about";
+        } => p !== null,
+      );
+
+    if (pages.length === 0) {
+      return res.json({ status: "failed", contacts: [] });
+    }
+
+    const combinedContent = pages
+      .map((p) => `[${p.sourcePage}]\n${p.markdown}`)
+      .join("\n\n---\n\n")
+      .slice(0, 8000);
+
+    const geminiResponse = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: combinedContent,
+      config: {
+        systemInstruction: `You are extracting contact information from scraped website content.
+Return a JSON array of contacts. For each contact include:
+  - name (string or null)
+  - email (string or null)
+  - title (string or null)
+  - sourcePage (exactly one of: "homepage", "contact", "about" — match which section the contact appeared in)
+  - isGeneric (true if the email is role-based: info@, admin@, sales@, enquiries@, hello@, support@, contact@, office@, reception@, accounts@, noreply@)
+
+Return ONLY contacts explicitly stated on the page. Do not infer or guess.
+If no contacts are found, return an empty array [].`,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              name: { type: Type.STRING },
+              email: { type: Type.STRING },
+              title: { type: Type.STRING },
+              sourcePage: { type: Type.STRING },
+              isGeneric: { type: Type.BOOLEAN },
+            },
+          },
+        },
+      },
+    });
+
+    let contacts: any[] = [];
+    try {
+      const raw =
+        geminiResponse.text?.replace(/```json\n?|```/g, "").trim() || "[]";
+      contacts = JSON.parse(raw);
+    } catch {
+      contacts = [];
+    }
+
+    // Normalise and enforce isGeneric
+    contacts = contacts
+      .filter((c: any) => c.email || c.name)
+      .map((c: any) => ({
+        name: c.name || null,
+        email: c.email || null,
+        title: c.title || null,
+        sourcePage: pageLabels.includes(c.sourcePage)
+          ? c.sourcePage
+          : "homepage",
+        isGeneric: c.email ? isGenericEmail(c.email) : false,
+      }));
+
+    return res.json({ status: "done", contacts });
+  } catch (err: any) {
+    console.error("[enrich-lead]", err.message);
+    return res.json({ status: "failed", contacts: [] });
   }
 });
 
